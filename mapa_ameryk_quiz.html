@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz — Ameryka Północna i Południowa</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Segoe UI',system-ui,sans-serif;background:#f0f4f8;overflow:hidden;height:100vh;}
+  #map{position:absolute;top:0;left:0;right:0;bottom:0;z-index:1;}
+
+  .quiz-panel{
+    position:fixed;bottom:0;left:0;right:0;z-index:1000;
+    background:rgba(255,255,255,.97);backdrop-filter:blur(10px);
+    border-radius:18px 18px 0 0;
+    box-shadow:0 -4px 30px rgba(0,0,0,.15);
+    padding:14px 18px 20px;
+    transition:transform .3s ease;
+  }
+
+  .progress-bar{height:4px;background:#e0e0e0;border-radius:2px;margin-bottom:12px;overflow:hidden;}
+  .progress-fill{height:100%;background:linear-gradient(90deg,#4CAF50,#8BC34A);border-radius:2px;transition:width .4s ease;}
+
+  .quiz-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+  .quiz-score{font-size:13px;color:#666;}
+  .quiz-score b{color:#1a1a2e;font-size:15px;}
+  .quiz-category-badge{
+    font-size:11px;padding:3px 10px;border-radius:20px;font-weight:600;color:#fff;
+  }
+
+  .quiz-question{
+    font-size:16px;font-weight:700;color:#1a1a2e;margin-bottom:12px;
+    min-height:44px;display:flex;align-items:center;
+  }
+  .quiz-question .q-num{
+    width:32px;height:32px;border-radius:50%;background:#1a1a2e;color:#fff;
+    display:flex;align-items:center;justify-content:center;
+    font-size:14px;font-weight:700;margin-right:12px;flex-shrink:0;
+  }
+
+  .answers{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+  .answer-btn{
+    padding:12px 14px;border-radius:10px;border:1.5px solid #ddd;
+    background:#fff;cursor:pointer;font-size:14px;color:#333;
+    text-align:left;transition:all .15s;font-family:inherit;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .answer-btn:hover{border-color:#999;background:#fafafa;}
+  .answer-btn:active{transform:scale(.98);}
+  .answer-btn.correct{background:#E8F5E9;border-color:#4CAF50;color:#2E7D32;font-weight:600;}
+  .answer-btn.wrong{background:#FFEBEE;border-color:#E53935;color:#C62828;}
+  .answer-btn.reveal{background:#E3F2FD;border-color:#1E88E5;color:#1565C0;font-weight:600;}
+  .answer-btn.disabled{pointer-events:none;opacity:.7;}
+
+  .next-btn{
+    display:none;width:100%;margin-top:10px;padding:12px;border-radius:10px;
+    border:none;background:#1a1a2e;color:#fff;font-size:15px;font-weight:600;
+    cursor:pointer;font-family:inherit;transition:all .15s;
+  }
+  .next-btn:hover{background:#2d2d4e;}
+  .next-btn:active{transform:scale(.98);}
+
+  /* Start screen */
+  .start-screen{
+    position:fixed;top:0;left:0;right:0;bottom:0;z-index:2000;
+    background:rgba(255,255,255,.98);backdrop-filter:blur(8px);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:24px;text-align:center;
+  }
+  .start-screen h1{font-size:22px;color:#1a1a2e;margin-bottom:6px;}
+  .start-screen p{font-size:13px;color:#888;margin-bottom:20px;}
+  .start-screen .mode-label{font-size:14px;font-weight:600;color:#555;margin-bottom:8px;}
+
+  .cat-grid{
+    display:flex;flex-wrap:wrap;gap:8px;justify-content:center;
+    margin-bottom:20px;max-width:500px;
+  }
+  .cat-chip{
+    padding:8px 14px;border-radius:20px;border:2px solid #ddd;
+    font-size:13px;cursor:pointer;font-weight:500;transition:all .15s;
+    user-select:none;background:#fff;color:#555;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .cat-chip.selected{color:#fff;border-color:transparent;}
+  .cat-chip:hover{opacity:.85;}
+
+  .start-btn{
+    padding:14px 48px;border-radius:12px;border:none;
+    background:#1a1a2e;color:#fff;font-size:16px;font-weight:700;
+    cursor:pointer;font-family:inherit;transition:all .15s;
+    margin-top:8px;
+  }
+  .start-btn:hover{background:#2d2d4e;}
+  .start-btn:disabled{opacity:.4;cursor:default;}
+
+  .mode-toggle{
+    display:flex;border-radius:10px;overflow:hidden;border:2px solid #ddd;margin-bottom:16px;
+  }
+  .mode-opt{
+    padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer;
+    background:#fff;color:#666;border:none;font-family:inherit;transition:all .15s;
+    flex:1;text-align:center;
+  }
+  .mode-opt.active{background:#1a1a2e;color:#fff;}
+
+  /* Result screen */
+  .result-screen{
+    position:fixed;top:0;left:0;right:0;bottom:0;z-index:2000;
+    background:rgba(255,255,255,.98);backdrop-filter:blur(8px);
+    display:none;flex-direction:column;align-items:center;justify-content:center;
+    padding:24px;text-align:center;
+  }
+  .result-screen.show{display:flex;}
+  .result-emoji{font-size:64px;margin-bottom:12px;}
+  .result-score{font-size:48px;font-weight:800;color:#1a1a2e;margin-bottom:4px;}
+  .result-label{font-size:16px;color:#888;margin-bottom:6px;}
+  .result-detail{font-size:14px;color:#aaa;margin-bottom:24px;}
+  .result-mistakes{
+    text-align:left;max-width:400px;width:100%;margin-bottom:20px;
+    max-height:200px;overflow-y:auto;
+  }
+  .mistake-item{
+    font-size:13px;padding:6px 0;border-bottom:1px solid #eee;color:#555;
+  }
+  .mistake-item b{color:#C62828;}
+  .mistake-item .correct-ans{color:#2E7D32;font-weight:600;}
+
+  .leaflet-tooltip.quiz-number{
+    background:#1a1a2e;color:#fff;border:none;border-radius:50%;
+    width:28px;height:28px;display:flex;align-items:center;justify-content:center;
+    font-weight:700;font-size:13px;padding:0;
+    box-shadow:0 2px 8px rgba(0,0,0,.3);
+    line-height:28px;text-align:center;
+  }
+  .leaflet-tooltip.quiz-number.answered{
+    background:#4CAF50;
+  }
+  .leaflet-tooltip.quiz-number.current{
+    background:#FF6F00;
+    animation:pulse 1s infinite;
+  }
+  .leaflet-tooltip.quiz-number.wrong-answer{
+    background:#E53935;
+  }
+  @keyframes pulse{
+    0%,100%{transform:scale(1);box-shadow:0 2px 8px rgba(0,0,0,.3);}
+    50%{transform:scale(1.15);box-shadow:0 2px 16px rgba(255,111,0,.5);}
+  }
+
+  @media(max-width:600px){
+    .quiz-question{font-size:14px;}
+    .answer-btn{font-size:13px;padding:10px 12px;}
+    .answers{gap:6px;}
+    .start-screen h1{font-size:18px;}
+    .cat-chip{font-size:12px;padding:6px 12px;}
+  }
+</style>
+</head>
+<body>
+<div id="map"></div>
+
+<!-- Start screen -->
+<div class="start-screen" id="startScreen">
+  <h1>Quiz: Ameryka Pn. i Pd.</h1>
+  <p>Punkt pojawia się na mapie — wybierz prawidłową nazwę</p>
+
+  <div class="mode-label">Tryb</div>
+  <div class="mode-toggle">
+    <button class="mode-opt active" onclick="setMode('choice')">Wybór z 4</button>
+    <button class="mode-opt" onclick="setMode('all')">Wszystkie opcje</button>
+  </div>
+
+  <div class="mode-label">Kategorie</div>
+  <div class="cat-grid" id="catGrid"></div>
+  <button class="start-btn" id="startBtn" onclick="startQuiz()">Rozpocznij quiz</button>
+</div>
+
+<!-- Quiz bottom panel -->
+<div class="quiz-panel" id="quizPanel" style="transform:translateY(100%);">
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+  <div class="quiz-header">
+    <span class="quiz-category-badge" id="catBadge"></span>
+    <span class="quiz-score">Wynik: <b id="scoreText">0/0</b></span>
+  </div>
+  <div class="quiz-question">
+    <div class="q-num" id="qNum">1</div>
+    <span id="qText">Co to za obiekt?</span>
+  </div>
+  <div class="answers" id="answersBox"></div>
+  <button class="next-btn" id="nextBtn" onclick="nextQuestion()">Następne pytanie →</button>
+</div>
+
+<!-- Result screen -->
+<div class="result-screen" id="resultScreen">
+  <div class="result-emoji" id="resultEmoji"></div>
+  <div class="result-score" id="resultScore"></div>
+  <div class="result-label" id="resultLabel"></div>
+  <div class="result-detail" id="resultDetail"></div>
+  <div class="result-mistakes" id="resultMistakes"></div>
+  <button class="start-btn" onclick="resetQuiz()">Spróbuj ponownie</button>
+</div>
+
+<script>
+const COLORS = {
+  'Góry':'#8B4513','Wyżyny':'#B8860B','Niziny':'#228B22',
+  'Rzeki':'#1E90FF','Półwyspy':'#FF6347','Zatoki':'#4169E1',
+  'Wyspy':'#FF8C00','Morza':'#00008B','Jeziora':'#00CED1','Stolice':'#DC143C',
+};
+
+const data = {
+  'Góry': [
+    {name:'Kordyliery',lat:48,lng:-120},{name:'Góry Skaliste',lat:44,lng:-110},
+    {name:'Góry Kaskadowe',lat:46,lng:-121.5},{name:'Appalachy',lat:37,lng:-80},
+    {name:'Sierra Madre',lat:24,lng:-105},{name:'Góry Nadbrzeżne',lat:54,lng:-128},
+    {name:'Andy',lat:-15,lng:-72},{name:'Góry Domeyki',lat:-25,lng:-69.5},
+  ],
+  'Wyżyny': [
+    {name:'W. Meksykańska',lat:22,lng:-102},{name:'W. Kolorado',lat:37,lng:-111},
+    {name:'Wielkie Równiny',lat:42,lng:-100},{name:'Wielka Kotlina',lat:40,lng:-117},
+    {name:'W. Gujańska',lat:4,lng:-62},{name:'W. Brazylijska',lat:-18,lng:-44},
+    {name:'W. Patagońska',lat:-44,lng:-69},
+  ],
+  'Niziny': [
+    {name:'N. Hudsońska',lat:55,lng:-85},{name:'N. Zatokowa',lat:30,lng:-91},
+    {name:'N. Atlantycka',lat:35,lng:-78},{name:'N. Amazonki',lat:-3,lng:-60},
+    {name:'N. Orinoko',lat:7,lng:-67},{name:'N. La Platy',lat:-33,lng:-60},
+  ],
+  'Rzeki': [
+    {name:'Missisipi',lat:38,lng:-90},{name:'Mackenzie',lat:65,lng:-128},
+    {name:'Rz. Św. Wawrzyńca',lat:47,lng:-71},{name:'Jukon',lat:63,lng:-150},
+    {name:'Kolorado',lat:36,lng:-112},{name:'Rio Grande',lat:30,lng:-104},
+    {name:'Amazonka',lat:-3,lng:-55},{name:'Orinoko',lat:8,lng:-64},
+    {name:'Parana',lat:-25,lng:-54},{name:'Paragwaj',lat:-20,lng:-58},
+    {name:'Sao Francisco',lat:-10,lng:-38},
+  ],
+  'Półwyspy': [
+    {name:'Alaska',lat:62,lng:-153},{name:'Labrador',lat:54,lng:-60},
+    {name:'Kalifornijski',lat:28,lng:-113},{name:'Floryda',lat:27,lng:-82},
+    {name:'Jukatan',lat:19,lng:-89},
+  ],
+  'Zatoki': [
+    {name:'Zat. Alaska',lat:58,lng:-148},{name:'Zat. Meksykańska',lat:25,lng:-90},
+    {name:'Zat. Hudsona',lat:60,lng:-85},{name:'Zat. Kalifornijska',lat:28,lng:-111},
+    {name:'Zat. Panamska',lat:7,lng:-79},{name:'Zat. La Plata',lat:-35,lng:-56},
+  ],
+  'Wyspy': [
+    {name:'Kuba',lat:22,lng:-79},{name:'Haiti/Hispaniola',lat:19,lng:-72},
+    {name:'Hawaje',lat:20,lng:-156},{name:'Bahamy',lat:25,lng:-77},
+    {name:'Ziemia Baffina',lat:68,lng:-70},{name:'Grenlandia',lat:72,lng:-40},
+    {name:'Nowa Fundlandia',lat:48,lng:-56},{name:'Ziemia Ognista',lat:-54,lng:-69},
+    {name:'Falklandy/Malwiny',lat:-52,lng:-59},{name:'Małe Antyle',lat:15,lng:-61},
+    {name:'Galapagos',lat:-1,lng:-90},
+  ],
+  'Morza': [
+    {name:'M. Karaibskie',lat:15,lng:-75},{name:'M. Sargassowe',lat:30,lng:-60},
+    {name:'M. Beauforta',lat:72,lng:-137},{name:'M. Baffina',lat:73,lng:-65},
+  ],
+  'Jeziora': [
+    {name:'Jez. Górne',lat:47.5,lng:-87},{name:'Michigan',lat:44,lng:-87},
+    {name:'Huron',lat:44.5,lng:-82},{name:'Erie',lat:42,lng:-81},
+    {name:'Wielkie Niedźwiedzie',lat:66,lng:-121},{name:'Wielkie Niewolnicze',lat:62,lng:-114},
+    {name:'Winnipeg',lat:52,lng:-97},{name:'Maracaibo',lat:9.5,lng:-71.5},
+    {name:'Titicaca',lat:-15.8,lng:-69.9},
+  ],
+  'Stolice': [
+    {name:'Ottawa',lat:45.4,lng:-75.7,country:'Kanada'},
+    {name:'Waszyngton',lat:38.9,lng:-77,country:'USA'},
+    {name:'Meksyk',lat:19.4,lng:-99.1,country:'Meksyk'},
+    {name:'Hawana',lat:23.1,lng:-82.4,country:'Kuba'},
+    {name:'Kingston',lat:18,lng:-76.8,country:'Jamajka'},
+    {name:'Port-au-Prince',lat:18.5,lng:-72.3,country:'Haiti'},
+    {name:'Santo Domingo',lat:18.5,lng:-69.9,country:'Dominikana'},
+    {name:'Nassau',lat:25,lng:-77.3,country:'Bahamy'},
+    {name:'Port of Spain',lat:10.7,lng:-61.5,country:'Trynidad i Tobago'},
+    {name:'Bogota',lat:4.7,lng:-74.1,country:'Kolumbia'},
+    {name:'Caracas',lat:10.5,lng:-66.9,country:'Wenezuela'},
+    {name:'Georgetown',lat:6.8,lng:-58.2,country:'Gujana'},
+    {name:'Paramaribo',lat:5.8,lng:-55.2,country:'Surinam'},
+    {name:'Kajenna',lat:4.9,lng:-52.3,country:'Gujana Fr.'},
+    {name:'Brasília',lat:-15.8,lng:-47.9,country:'Brazylia'},
+    {name:'Quito',lat:-0.2,lng:-78.5,country:'Ekwador'},
+    {name:'Lima',lat:-12,lng:-77,country:'Peru'},
+    {name:'La Paz',lat:-16.5,lng:-68.1,country:'Boliwia'},
+    {name:'Santiago',lat:-33.4,lng:-70.6,country:'Chile'},
+    {name:'Buenos Aires',lat:-34.6,lng:-58.4,country:'Argentyna'},
+    {name:'Montevideo',lat:-34.9,lng:-56.2,country:'Urugwaj'},
+    {name:'Asunción',lat:-25.3,lng:-57.6,country:'Paragwaj'},
+  ],
+};
+
+// --- Map ---
+const isMobile = window.innerWidth <= 600;
+const map = L.map('map', {
+  center:[10,-80], zoom: isMobile ? 2 : 3,
+  minZoom:2, maxZoom:10, zoomControl:false, tap:true
+});
+L.control.zoom({position:'bottomleft'}).addTo(map);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png',{
+  attribution:'&copy; CARTO &copy; OSM', subdomains:'abcd', maxZoom:19
+}).addTo(map);
+
+// --- State ---
+let mode = 'choice'; // 'choice' or 'all'
+let selectedCats = new Set(Object.keys(data));
+let questions = [];
+let currentQ = 0;
+let score = 0;
+let mistakes = [];
+let markers = [];
+let answered = false;
+
+// --- Build start screen ---
+const catGrid = document.getElementById('catGrid');
+Object.keys(data).forEach(cat => {
+  const chip = document.createElement('button');
+  chip.className = 'cat-chip selected';
+  chip.textContent = `${cat} (${data[cat].length})`;
+  chip.style.background = COLORS[cat];
+  chip.style.borderColor = COLORS[cat];
+  chip.dataset.cat = cat;
+  chip.addEventListener('click', () => {
+    if (chip.classList.contains('selected')) {
+      chip.classList.remove('selected');
+      chip.style.background = '#fff';
+      chip.style.color = COLORS[cat];
+      selectedCats.delete(cat);
+    } else {
+      chip.classList.add('selected');
+      chip.style.background = COLORS[cat];
+      chip.style.color = '#fff';
+      selectedCats.add(cat);
+    }
+    document.getElementById('startBtn').disabled = selectedCats.size === 0;
+  });
+  catGrid.appendChild(chip);
+});
+
+function setMode(m) {
+  mode = m;
+  document.querySelectorAll('.mode-opt').forEach(el => {
+    el.classList.toggle('active', el.textContent.includes(m === 'choice' ? '4' : 'Wszystkie'));
+  });
+}
+
+// --- Quiz logic ---
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function startQuiz() {
+  // Build questions from selected categories
+  questions = [];
+  selectedCats.forEach(cat => {
+    data[cat].forEach(item => {
+      questions.push({ ...item, category: cat });
+    });
+  });
+  questions = shuffle(questions);
+  currentQ = 0;
+  score = 0;
+  mistakes = [];
+
+  // Hide start, show panel
+  document.getElementById('startScreen').style.display = 'none';
+  document.getElementById('quizPanel').style.transform = 'translateY(0)';
+
+  // Place ALL numbered markers on map (but dimmed)
+  clearMarkers();
+  questions.forEach((q, i) => {
+    const icon = L.divIcon({
+      className: '',
+      html: `<div id="qm-${i}" style="
+        width:28px;height:28px;border-radius:50%;
+        background:#B0BEC5;color:#fff;
+        display:flex;align-items:center;justify-content:center;
+        font-weight:700;font-size:12px;font-family:inherit;
+        box-shadow:0 2px 6px rgba(0,0,0,.2);
+        transition:all .3s;
+      ">${i + 1}</div>`,
+      iconSize: [28, 28],
+      iconAnchor: [14, 14]
+    });
+    const m = L.marker([q.lat, q.lng], { icon, interactive: false });
+    m.addTo(map);
+    markers.push(m);
+  });
+
+  showQuestion();
+}
+
+function clearMarkers() {
+  markers.forEach(m => map.removeLayer(m));
+  markers = [];
+}
+
+function showQuestion() {
+  if (currentQ >= questions.length) { showResults(); return; }
+
+  answered = false;
+  const q = questions[currentQ];
+  const color = COLORS[q.category];
+
+  // Update progress
+  document.getElementById('progressFill').style.width = ((currentQ / questions.length) * 100) + '%';
+  document.getElementById('scoreText').textContent = `${score}/${currentQ}`;
+  document.getElementById('qNum').textContent = currentQ + 1;
+
+  // Category badge
+  const badge = document.getElementById('catBadge');
+  badge.textContent = q.category;
+  badge.style.background = color;
+
+  // Question text
+  const qText = document.getElementById('qText');
+  if (q.category === 'Stolice') {
+    qText.textContent = `Stolica jakiego państwa znajduje się w tym miejscu?`;
+  } else {
+    qText.textContent = `Jaki to obiekt? (${q.category})`;
+  }
+
+  // Highlight current marker
+  const el = document.getElementById('qm-' + currentQ);
+  if (el) {
+    el.style.background = '#FF6F00';
+    el.style.boxShadow = '0 0 0 4px rgba(255,111,0,.3), 0 2px 8px rgba(0,0,0,.3)';
+    el.style.transform = 'scale(1.2)';
+  }
+
+  // Pan map to question
+  map.flyTo([q.lat, q.lng], Math.max(map.getZoom(), 4), { duration: 0.8 });
+
+  // Build answers
+  const answersBox = document.getElementById('answersBox');
+  answersBox.innerHTML = '';
+
+  let correctAnswer, options;
+
+  if (q.category === 'Stolice') {
+    correctAnswer = q.country;
+    // Get wrong answers from same category
+    const pool = data[q.category].filter(x => x.country !== q.country).map(x => x.country);
+    if (mode === 'choice') {
+      const wrongs = shuffle(pool).slice(0, 3);
+      options = shuffle([correctAnswer, ...wrongs]);
+    } else {
+      options = shuffle(data[q.category].map(x => x.country));
+    }
+  } else {
+    correctAnswer = q.name;
+    // Get wrong answers from same category
+    const pool = data[q.category].filter(x => x.name !== q.name).map(x => x.name);
+    if (mode === 'choice') {
+      let wrongs = shuffle(pool).slice(0, 3);
+      // If not enough in same cat, pull from others
+      if (wrongs.length < 3) {
+        const allNames = [];
+        Object.entries(data).forEach(([c, items]) => {
+          if (c !== q.category) items.forEach(it => allNames.push(it.name));
+        });
+        wrongs = [...wrongs, ...shuffle(allNames)].slice(0, 3);
+      }
+      options = shuffle([correctAnswer, ...wrongs]);
+    } else {
+      options = shuffle(data[q.category].map(x => x.name));
+    }
+  }
+
+  // Set grid columns based on option count
+  if (options.length <= 4) {
+    answersBox.style.gridTemplateColumns = '1fr 1fr';
+  } else if (options.length <= 8) {
+    answersBox.style.gridTemplateColumns = '1fr 1fr';
+  } else {
+    answersBox.style.gridTemplateColumns = '1fr 1fr 1fr';
+  }
+
+  options.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'answer-btn';
+    btn.textContent = opt;
+    btn.addEventListener('click', () => handleAnswer(btn, opt, correctAnswer, color));
+    answersBox.appendChild(btn);
+  });
+
+  document.getElementById('nextBtn').style.display = 'none';
+}
+
+function handleAnswer(btn, selected, correct, color) {
+  if (answered) return;
+  answered = true;
+
+  const btns = document.querySelectorAll('.answer-btn');
+  btns.forEach(b => b.classList.add('disabled'));
+
+  if (selected === correct) {
+    btn.classList.add('correct');
+    score++;
+    // Mark marker green
+    const el = document.getElementById('qm-' + currentQ);
+    if (el) {
+      el.style.background = '#4CAF50';
+      el.style.boxShadow = '0 2px 6px rgba(0,0,0,.2)';
+      el.style.transform = 'scale(1)';
+    }
+  } else {
+    btn.classList.add('wrong');
+    // Highlight correct answer
+    btns.forEach(b => { if (b.textContent === correct) b.classList.add('reveal'); });
+    mistakes.push({ q: questions[currentQ], yourAnswer: selected, correct });
+    // Mark marker red
+    const el = document.getElementById('qm-' + currentQ);
+    if (el) {
+      el.style.background = '#E53935';
+      el.style.boxShadow = '0 2px 6px rgba(0,0,0,.2)';
+      el.style.transform = 'scale(1)';
+    }
+  }
+
+  document.getElementById('scoreText').textContent = `${score}/${currentQ + 1}`;
+  document.getElementById('nextBtn').style.display = 'block';
+  document.getElementById('nextBtn').textContent =
+    currentQ + 1 >= questions.length ? 'Zobacz wyniki →' : 'Następne pytanie →';
+}
+
+function nextQuestion() {
+  currentQ++;
+  showQuestion();
+}
+
+function showResults() {
+  document.getElementById('quizPanel').style.transform = 'translateY(100%)';
+  const pct = Math.round((score / questions.length) * 100);
+
+  let emoji, label;
+  if (pct === 100) { emoji = '🏆'; label = 'Perfekcyjnie!'; }
+  else if (pct >= 80) { emoji = '🌟'; label = 'Świetny wynik!'; }
+  else if (pct >= 60) { emoji = '👍'; label = 'Dobrze!'; }
+  else if (pct >= 40) { emoji = '📚'; label = 'Jeszcze trochę nauki!'; }
+  else { emoji = '💪'; label = 'Nie poddawaj się!'; }
+
+  document.getElementById('resultEmoji').textContent = emoji;
+  document.getElementById('resultScore').textContent = `${score}/${questions.length}`;
+  document.getElementById('resultLabel').textContent = label;
+  document.getElementById('resultDetail').textContent = `${pct}% poprawnych odpowiedzi`;
+
+  const mist = document.getElementById('resultMistakes');
+  mist.innerHTML = '';
+  if (mistakes.length > 0) {
+    const title = document.createElement('div');
+    title.style.cssText = 'font-weight:700;font-size:14px;margin-bottom:8px;color:#333;';
+    title.textContent = `Błędy (${mistakes.length}):`;
+    mist.appendChild(title);
+
+    mistakes.forEach(m => {
+      const div = document.createElement('div');
+      div.className = 'mistake-item';
+      const cat = m.q.category;
+      const qName = cat === 'Stolice'
+        ? `Punkt ${m.q.name}`
+        : `${cat}: punkt na mapie`;
+      div.innerHTML = `${qName} — twoja odp.: <b>${m.yourAnswer}</b> → poprawna: <span class="correct-ans">${m.correct}</span>`;
+      mist.appendChild(div);
+    });
+  }
+
+  document.getElementById('resultScreen').classList.add('show');
+  document.getElementById('progressFill').style.width = '100%';
+}
+
+function resetQuiz() {
+  clearMarkers();
+  document.getElementById('resultScreen').classList.remove('show');
+  document.getElementById('startScreen').style.display = 'flex';
+  document.getElementById('quizPanel').style.transform = 'translateY(100%)';
+  map.flyTo([10, -80], isMobile ? 2 : 3, { duration: 0.5 });
+}
+</script>
+</body>
+</html>
