@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Test predyspozycji językowych — Trening</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,900;1,9..144,500&family=Spectral:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#f3ecdd; --paper2:#ece2cd; --ink:#231d16; --ink-soft:#5b5042;
+    --burgundy:#8a2b2b; --burgundy-d:#6e1f1f; --teal:#1f5e57; --gold:#b08322;
+    --line:#cdbf9f; --ok:#2f6b3f; --ok-bg:#e3efe0; --bad:#a8302f; --bad-bg:#f6e2df;
+    --shadow:0 1px 0 #fff8, 0 18px 40px -22px #2b210f;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; color:var(--ink); font-family:"Spectral",Georgia,serif; font-size:18px; line-height:1.55;
+    background:
+      radial-gradient(1200px 600px at 12% -8%, #fbf6ea 0%, transparent 60%),
+      radial-gradient(900px 500px at 100% 0%, #f7eedb 0%, transparent 55%),
+      var(--paper);
+    background-attachment:fixed;
+  }
+  body::before{
+    content:""; position:fixed; inset:0; pointer-events:none; opacity:.5; mix-blend-mode:multiply;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+  }
+  .wrap{max-width:920px;margin:0 auto;padding:0 22px 120px}
+
+  /* ---- Header ---- */
+  header.hero{padding:54px 0 26px;text-align:center;position:relative}
+  .crest{width:64px;height:64px;margin:0 auto 14px;display:block}
+  .kicker{font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:.32em;text-transform:uppercase;color:var(--burgundy);font-weight:600}
+  h1{font-family:"Fraunces",serif;font-weight:900;font-size:clamp(34px,6vw,58px);line-height:1.02;margin:.18em 0 .12em;letter-spacing:-.01em}
+  h1 em{font-style:italic;font-weight:500;color:var(--burgundy)}
+  .sub{font-style:italic;color:var(--ink-soft);max-width:560px;margin:0 auto;font-size:18px}
+  .meta{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:18px}
+  .chip{font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:.06em;padding:6px 12px;border:1px solid var(--line);border-radius:999px;background:#fffdf7aa}
+  .rule{height:2px;background:linear-gradient(90deg,transparent,var(--line),transparent);margin:26px 0 8px}
+
+  /* ---- sticky scorebar ---- */
+  .scorebar{position:sticky;top:0;z-index:30;margin:0 -22px 8px;padding:12px 22px;
+    background:linear-gradient(#f6efe1f2,#f1e8d6f2);backdrop-filter:blur(6px);
+    border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .scorebar .bar{flex:1;min-width:140px;height:10px;border-radius:999px;background:#0001;overflow:hidden;border:1px solid var(--line)}
+  .scorebar .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--teal),var(--gold));transition:width .6s cubic-bezier(.3,1,.4,1)}
+  .scorebar .lbl{font-family:"JetBrains Mono",monospace;font-size:13px;font-weight:600;white-space:nowrap}
+  .btn{font-family:"JetBrains Mono",monospace;font-size:13px;font-weight:600;letter-spacing:.04em;cursor:pointer;border:1px solid var(--ink);background:var(--ink);color:var(--paper);padding:9px 16px;border-radius:8px;transition:transform .1s,box-shadow .2s}
+  .btn:hover{transform:translateY(-1px);box-shadow:var(--shadow)}
+  .btn.ghost{background:transparent;color:var(--ink)}
+  .btn.red{background:var(--burgundy);border-color:var(--burgundy)}
+
+  /* ---- nav ---- */
+  nav.toc{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:14px 0 6px}
+  nav.toc a{font-family:"JetBrains Mono",monospace;font-size:12px;text-decoration:none;color:var(--ink-soft);
+    border:1px solid var(--line);border-radius:7px;padding:4px 9px;background:#fffdf766;transition:.15s}
+  nav.toc a:hover{color:var(--burgundy);border-color:var(--burgundy)}
+
+  /* ---- section ---- */
+  section.task{background:#fffdf7;border:1px solid var(--line);border-radius:14px;padding:26px 26px 22px;margin:22px 0;
+    box-shadow:var(--shadow);position:relative;scroll-margin-top:70px}
+  .task-head{display:flex;align-items:baseline;gap:12px;margin-bottom:6px}
+  .znum{font-family:"Fraunces",serif;font-weight:900;font-size:30px;color:var(--burgundy);line-height:1}
+  .ttl{font-family:"Fraunces",serif;font-weight:600;font-size:22px;flex:1}
+  .pts{font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--ink-soft);border:1px solid var(--line);padding:3px 8px;border-radius:6px;white-space:nowrap}
+  .instr{font-style:italic;color:var(--ink-soft);margin:.2em 0 16px;font-size:16px}
+
+  .q{padding:10px 12px;border-radius:9px;margin:7px 0;border:1px solid transparent;transition:.2s}
+  .q.correct{background:var(--ok-bg);border-color:#b8d6b0}
+  .q.incorrect{background:var(--bad-bg);border-color:#e6b6b2}
+  .q .stem{font-weight:600;margin-bottom:4px}
+  .q .stem .num{font-family:"JetBrains Mono",monospace;color:var(--burgundy);margin-right:8px}
+
+  /* options */
+  .opts{display:flex;flex-direction:column;gap:5px;margin-top:4px}
+  label.opt{display:flex;gap:9px;align-items:flex-start;cursor:pointer;padding:5px 9px;border-radius:7px;border:1px solid var(--line);background:#fff;transition:.12s}
+  label.opt:hover{border-color:var(--burgundy)}
+  label.opt input{margin-top:5px;accent-color:var(--burgundy)}
+  label.opt .ltr{font-family:"JetBrains Mono",monospace;font-weight:600;color:var(--ink-soft)}
+  label.opt.is-correct{background:var(--ok-bg);border-color:var(--ok)}
+  label.opt.is-wrong{background:var(--bad-bg);border-color:var(--bad)}
+
+  input.fill{font-family:"Spectral",serif;font-size:17px;padding:6px 10px;border:1px solid var(--line);border-radius:7px;background:#fff;min-width:180px}
+  input.fill:focus{outline:2px solid var(--gold);border-color:var(--gold)}
+  .hintpat{font-family:"JetBrains Mono",monospace;letter-spacing:.18em;color:var(--burgundy);background:#f4ecda;padding:2px 8px;border-radius:6px;font-size:15px}
+  .ans-reveal{font-family:"JetBrains Mono",monospace;font-size:13px;color:var(--ok);margin-left:6px}
+  .ans-reveal.bad{color:var(--bad)}
+
+  select.sel{font-family:"Spectral",serif;font-size:16px;padding:5px 8px;border:1px solid var(--line);border-radius:7px;background:#fff}
+  select.sel:focus{outline:2px solid var(--gold)}
+
+  .matchrow,.orderrow,.catrow{display:flex;gap:10px;align-items:center;padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:#fff;margin:5px 0;flex-wrap:wrap}
+  .matchrow .left,.catrow .left{flex:1;min-width:160px}
+  .orderrow .txt{flex:1;min-width:200px}
+  .ref{background:#f6efdf;border:1px dashed var(--line);border-radius:9px;padding:12px 14px;margin:0 0 14px;font-size:15px}
+  .ref b{color:var(--burgundy)}
+  .ref .grid{display:grid;grid-template-columns:1fr 1fr;gap:2px 24px}
+  @media(max-width:560px){.ref .grid{grid-template-columns:1fr}}
+  .pool{font-family:"JetBrains Mono",monospace;font-size:13px;background:#f1e8d6;border:1px solid var(--line);border-radius:8px;padding:9px 12px;margin:8px 0 14px}
+
+  /* stress letters */
+  .lettrow{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+  .lettrow .letter{font-family:"JetBrains Mono",monospace;font-weight:600;font-size:20px;width:30px;height:34px;display:flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:6px;background:#fff}
+  .lettrow .letter.vowel{cursor:pointer}
+  .lettrow .letter.vowel:hover{border-color:var(--burgundy)}
+  .lettrow .letter.sel{background:var(--gold);color:#fff;border-color:var(--gold)}
+  .lettrow .letter.right{background:var(--ok);color:#fff;border-color:var(--ok)}
+  .lettrow .letter.wrong{background:var(--bad);color:#fff;border-color:var(--bad)}
+
+  /* clickable words */
+  .clk{line-height:2}
+  .clk .w{cursor:pointer;padding:1px 4px;border-radius:5px;border:1px solid transparent}
+  .clk .w:hover{background:#f4ecda}
+  .clk .w.sel{background:var(--gold);color:#fff}
+  .clk .w.right{background:var(--ok);color:#fff}
+  .clk .w.wrong{background:var(--bad);color:#fff}
+  .clk .fixed{font-weight:700;text-decoration:underline;text-decoration-color:var(--burgundy);text-underline-offset:3px}
+
+  /* result modal-ish */
+  #result{margin:18px 0;padding:18px 20px;border-radius:12px;border:1px solid var(--line);background:#fffdf7;display:none;text-align:center}
+  #result.show{display:block;animation:pop .4s}
+  @keyframes pop{from{transform:scale(.97);opacity:0}to{transform:scale(1);opacity:1}}
+  #result .big{font-family:"Fraunces",serif;font-weight:900;font-size:42px}
+  #result .msg{font-style:italic;color:var(--ink-soft)}
+  footer{text-align:center;font-size:13px;color:var(--ink-soft);font-family:"JetBrains Mono",monospace;margin-top:30px}
+  .tip{font-size:14px;color:var(--ink-soft);font-style:italic}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <svg class="crest" viewBox="0 0 64 64" fill="none"><path d="M8 50 V20 L32 10 56 20 V50" stroke="#8a2b2b" stroke-width="2.4" stroke-linejoin="round"/><path d="M32 14 V50 M14 24 H50 M14 33 H50 M14 42 H50" stroke="#1f5e57" stroke-width="1.8"/><circle cx="32" cy="10" r="3" fill="#b08322"/></svg>
+    <div class="kicker">Trening · Klasa dwujęzyczna</div>
+    <h1>Test predyspozycji <em>językowych</em></h1>
+    <p class="sub">Świeży zestaw zadań na wzór testu egzaminacyjnego. 16 typów zadań, automatyczne sprawdzanie i punktacja.</p>
+    <div class="meta">
+      <span class="chip">⏱ ~60 min</span>
+      <span class="chip" id="maxchip">— pkt</span>
+      <span class="chip">16 zadań</span>
+    </div>
+  </header>
+
+  <div class="scorebar">
+    <span class="lbl" id="scoreTxt">0 / 0 pkt</span>
+    <div class="bar"><i id="scoreBar"></i></div>
+    <button class="btn red" onclick="checkAll()">Sprawdź odpowiedzi</button>
+    <button class="btn ghost" onclick="resetAll()">Od nowa</button>
+  </div>
+
+  <nav class="toc" id="toc"></nav>
+  <div id="result"></div>
+  <div class="rule"></div>
+
+  <main id="quiz"></main>
+
+  <div style="text-align:center;margin-top:26px">
+    <button class="btn red" onclick="checkAll()" style="padding:13px 28px;font-size:15px">Sprawdź cały test ✓</button>
+  </div>
+  <footer>Powodzenia! · Trening wygenerowany na podstawie przykładowych testów predyspozycji językowych</footer>
+</div>
+
+<script>
+/* ============================ DANE ============================ */
+const QUIZ = [
+{ no:"I", title:"Synonimy", instr:"Do każdego wyrazu dobierz wyraz o najbliższym znaczeniu (synonim). Zaznacz jedną odpowiedź.", type:"mc",
+  questions:[
+    {q:"lakoniczny", options:["zwięzły","nudny","głośny","długi"], correct:0},
+    {q:"fascynować", options:["nudzić","oczarowywać","męczyć","opisywać"], correct:1},
+    {q:"dyskretny", options:["taktowny","hałaśliwy","wesoły","szybki"], correct:0},
+    {q:"arogancki", options:["skromny","zarozumiały","uprzejmy","nieśmiały"], correct:1},
+    {q:"efemeryczny", options:["trwały","ogromny","krótkotrwały","jasny"], correct:2},
+    {q:"przenikliwy", options:["tępy","bystry","leniwy","miły"], correct:1},
+  ]},
+
+{ no:"II", title:"Antonimy", instr:"Do każdego wyrazu dobierz z ramki wyraz o znaczeniu przeciwnym (antonim). Uwaga — w ramce są wyrazy-pułapki!", type:"fill",
+  pool:["skąpy","stały","złagodzić","osłabić","tajny","szczodry","ruchomy","wzmocnić","głośny","otwarty"],
+  questions:[
+    {q:"hojny", answers:["skąpy"]},
+    {q:"tymczasowy", answers:["stały","trwały"]},
+    {q:"zaostrzyć", answers:["złagodzić"]},
+    {q:"spotęgować", answers:["osłabić"]},
+    {q:"jawny", answers:["tajny","ukryty"]},
+  ]},
+
+{ no:"III", title:"Wyraz niepasujący", instr:"W każdym wierszu zaznacz wyraz, który nie pasuje do pozostałych pod względem gramatycznym.", type:"odd",
+  questions:[
+    {options:["wysoko","smutno","czworo","głośno"], correct:2, why:"„czworo” to liczebnik zbiorowy — reszta to przysłówki."},
+    {options:["większy","mądrzejszy","bardziej zielony","czerwony"], correct:3, why:"„czerwony” nie jest w stopniu wyższym."},
+    {options:["zrobi","powie","czyta","kupi"], correct:2, why:"„czyta” to czas teraźniejszy — reszta to czas przyszły."},
+    {options:["pisał","czytał","śpiewał","namaluje"], correct:3, why:"„namaluje” to czas przyszły — reszta to czas przeszły."},
+    {options:["stół","krzesło","okno","spodnie"], correct:3, why:"„spodnie” występują tylko w liczbie mnogiej (plurale tantum)."},
+  ]},
+
+{ no:"IV", title:"Brakujące wyrazy", instr:"Uzupełnij brakujące wyrazy. Liczba kresek odpowiada liczbie liter, niektóre litery są podane.", type:"fill",
+  questions:[
+    {q:"Po całym dniu w górach byliśmy głodni jak", pat:"w _ _ k", answers:["wilk"]},
+    {q:"Polityk przed wyborami obiecywał złote", pat:"_ _ _ y", answers:["góry"]},
+    {q:"Na pytanie nauczyciela milczał jak", pat:"_ _ ó _", answers:["grób"]},
+    {q:"Był tak zdolny, że robota paliła mu się w", pat:"_ _ _ a _ _", answers:["rękach","ręku"]},
+    {q:"Po treningu był wyczerpany i spał jak", pat:"_ a _ _ _ ń", answers:["kamień"]},
+  ]},
+
+{ no:"V", title:"Formy analogiczne", instr:"Uzupełnij brakujące wyrazy, stosując formy analogiczne do podanych przykładów.", type:"fill",
+  questions:[
+    {q:"jeść → zjadłem obiad;  pić → ____ herbatę", answers:["wypiłem"]},
+    {q:"zły → najgorszy dzień;  dobry → ____ dzień", answers:["najlepszy"]},
+    {q:"ramię → nosić na ramieniu;  szyja → nosić na ____", answers:["szyi"]},
+    {q:"iść → wczoraj poszedłem;  jechać → wczoraj ____", answers:["pojechałem"]},
+    {q:"koło → okrągły stół;  kwadrat → ____ stół", answers:["kwadratowy"]},
+  ]},
+
+{ no:"VI", title:"Akcent wyrazowy", instr:"W każdym wyrazie kliknij samogłoskę, na którą pada akcent. (Uwaga na wyjątki od akcentu na drugiej sylabie od końca!)", type:"stress",
+  questions:[
+    {word:"POLITECHNIKA", correct:9, why:"po-li-tech-NI-ka — akcent na 2. sylabie od końca."},
+    {word:"ZROBILIŚMY", correct:4, why:"zro-BI-liś-my — formy na -liśmy akcentujemy na 3. sylabie od końca."},
+    {word:"MATEMATYKA", correct:5, why:"ma-te-MA-ty-ka — wyraz pochodzenia greckiego, akcent na 3. sylabie od końca."},
+    {word:"CZYTALIBYŚCIE", correct:4, why:"czy-TA-li-by-ście — tryb przypuszczający, akcent jak w „czytali”."},
+    {word:"UNIWERSYTET", correct:7, why:"u-ni-wer-SY-tet — akcent na 2. sylabie od końca."},
+  ]},
+
+{ no:"VII", title:"Funkcja w zdaniu", instr:"W zdaniu b) kliknij wyraz, który pełni tę samą funkcję, co podkreślony fragment w zdaniu a).", type:"wordclick",
+  questions:[
+    {a:["",["Brat"]," wyjechał wczoraj do Wrocławia."], aFn:"podmiot", b:["Wczoraj","mama","ugotowała","obiad."], correct:1},
+    {a:["Czytam ciekawą ",["książkę"],"."], aFn:"dopełnienie", b:["Wczoraj","oglądałem","film","."], correct:2},
+    {a:["Pies biegł ",["szybko"],"."], aFn:"okolicznik sposobu", b:["Dziecko","zasnęło","spokojnie","."], correct:2},
+    {a:["",["Wysoki"]," chłopiec wszedł do sali."], aFn:"przydawka", b:["Czerwony","samochód","zniknął","za rogiem."], correct:0},
+    {a:["Uczeń ",["czyta"]," lekturę."], aFn:"orzeczenie", b:["Kot","śpi","na kanapie","."], correct:1},
+  ]},
+
+{ no:"VIII", title:"Łacina — odmiana czasownika", instr:"Porównaj formy czasownika laudare z ich polskim znaczeniem, a potem dopasuj sześć form czasownika portare do polskich znaczeń.", type:"match",
+  ref:{title:"laudare = chwalić", pairs:[
+    ["laudare","chwalić (bezokolicznik)"],["laudatur","jest chwalony"],
+    ["laudatis","chwalicie"],["laudabam","chwaliłem"],
+    ["laudate","chwalcie!"],["laudabunt","pochwalą"],
+    ["laudabit","pochwali"],["laudaret","chwaliłby"],["laudabat","chwalił"]
+  ]},
+  pool:["portare","portabam","portabat","portabit","portatis","portate","portatur","portantur"],
+  questions:[
+    {left:"niosłem", correct:"portabam"},
+    {left:"niesiecie", correct:"portatis"},
+    {left:"nieść (bezokolicznik)", correct:"portare"},
+    {left:"niósł", correct:"portabat"},
+    {left:"jest niesiony", correct:"portatur"},
+    {left:"poniesie", correct:"portabit"},
+  ]},
+
+{ no:"IX", title:"Nieznany język — logika", instr:"Na podstawie podanych przykładów uzupełnij brakujące wyrazy/zdania w nieznanym języku.", type:"fill",
+  questions:[
+    {q:"bel = jasny → nibel = ciemny;   san = mokry → ____ = suchy", answers:["nisan"]},
+    {q:"mara = matka, marato = babcia, maratoro = prababcia;   paro = ojciec → ____ = pradziadek", answers:["parotoro"]},
+    {q:"Os kapo lina. = Chłopiec ma psa.   Es kapo du liny. = Dziewczyna ma dwa psy.   ____ = Dziewczyna ma psa.", answers:["es kapo lina."]},
+    {q:"Ki fazo viro? = Co robi mężczyzna?   Viro legos. = Mężczyzna czyta.   ____ = Co czyta mężczyzna?", answers:["ki legos viro?"]},
+    {q:"To je u kot. = To jest kot.   Kot je mali. = Kot jest mały.   To je u pes. = To jest pies. → ____ = Pies jest mały.", answers:["pes je mali."]},
+  ]},
+
+{ no:"X", title:"Rozpoznaj język", instr:"Zwróć uwagę na charakterystyczny wygląd wyrazów. Dopasuj zakończenie zdania do jego początku.", type:"match",
+  pool:["a) près de la piscine.","b) cerca de la piscina.","c) vicino alla piscina."],
+  questions:[
+    {left:"(francuski)  Veuillez surveiller les enfants…", correct:"a) près de la piscine."},
+    {left:"(hiszpański)  Por favor, vigile a los niños…", correct:"b) cerca de la piscina."},
+    {left:"(włoski)  Si prega di sorvegliare i bambini…", correct:"c) vicino alla piscina."},
+  ]},
+
+{ no:"XI", title:"Skojarzenia z kategorią", instr:"Z jaką kategorią kojarzy ci się każdy wyraz (z różnych języków)? Wybierz kategorię.", type:"categorize",
+  categories:["Szkoła","Mieszkanie","Zdrowie","Rodzina"],
+  questions:[
+    {left:"studente (włoski)", correct:"Szkoła"},
+    {left:"Lehrer (niemiecki)", correct:"Szkoła"},
+    {left:"kniha (czeski)", correct:"Szkoła"},
+    {left:"fenêtre (francuski)", correct:"Mieszkanie"},
+    {left:"puerta (hiszpański)", correct:"Mieszkanie"},
+    {left:"stôl (słowacki)", correct:"Mieszkanie"},
+    {left:"salud (hiszpański)", correct:"Zdrowie"},
+    {left:"medico (włoski)", correct:"Zdrowie"},
+    {left:"nemocnice (czeski)", correct:"Zdrowie"},
+    {left:"mère (francuski)", correct:"Rodzina"},
+    {left:"bratr (czeski)", correct:"Rodzina"},
+    {left:"abuela (hiszpański)", correct:"Rodzina"},
+  ]},
+
+{ no:"XII", title:"Definicje w obcych językach", instr:"Dopasuj polskie słowo do jego definicji zapisanej w obcym języku (pomogą wyrazy podobne do polskich i angielskich).", type:"match",
+  pool:[
+    "a) (niem.) …ist ein Haustier, das bellt und gern Knochen frisst.",
+    "b) (hiszp.) …es un profesional que cura a los enfermos en el hospital.",
+    "c) (franc.) …est l'astre qui brille dans le ciel pendant la nuit.",
+    "d) (ang.) …is a hot drink made by pouring boiling water over dried leaves.",
+    "e) (hiszp.) …es el lugar donde los niños aprenden y estudian."
+  ],
+  questions:[
+    {left:"pies", correct:"a) (niem.) …ist ein Haustier, das bellt und gern Knochen frisst."},
+    {left:"lekarz", correct:"b) (hiszp.) …es un profesional que cura a los enfermos en el hospital."},
+    {left:"księżyc", correct:"c) (franc.) …est l'astre qui brille dans le ciel pendant la nuit."},
+    {left:"herbata", correct:"d) (ang.) …is a hot drink made by pouring boiling water over dried leaves."},
+    {left:"szkoła", correct:"e) (hiszp.) …es el lugar donde los niños aprenden y estudian."},
+  ]},
+
+{ no:"XIII", title:"Napisy w obcych językach", instr:"Wybierz właściwe znaczenie podanego napisu / komunikatu.", type:"mc",
+  questions:[
+    {q:"Napis „Vietato fumare” (włoski) oznacza:", options:["zakaz wstępu","zakaz palenia","zakaz parkowania"], correct:1},
+    {q:"Napis „Salida” (hiszpański) najczęściej znajdziesz:", options:["nad wyjściem ze sklepu","na butelce wody","w menu restauracji"], correct:0},
+    {q:"Napis „Achtung” (niemiecki) oznacza:", options:["Dziękuję","Uwaga","Zamknięte"], correct:1},
+    {q:"Napis „Poussez” (francuski) na drzwiach oznacza:", options:["Pchać","Ciągnąć","Otwarte"], correct:0},
+    {q:"Napis „Aperto” (włoski) na sklepie oznacza:", options:["Zamknięte","Otwarte","Wyprzedaż"], correct:1},
+  ]},
+
+{ no:"XIV", title:"Ułóż dialog (chorwacki)", instr:"Ułóż dialog w logicznej kolejności — przypisz numery od 1 do 5.", type:"order",
+  questions:[
+    {txt:"Hvala. Doviđenja!", pos:5},
+    {txt:"Dobar dan! Želim kavu, molim.", pos:1},
+    {txt:"Veliku, hvala.", pos:3},
+    {txt:"Naravno. Veliku ili malu?", pos:2},
+    {txt:"Izvolite. To je dva eura.", pos:4},
+  ]},
+
+{ no:"XV", title:"Związki frazeologiczne", instr:"Uzupełnij związki frazeologiczne, korzystając z ramki. Możesz zmieniać formę wyrazów.", type:"fill",
+  pool:["wierzba","owca","niebo","widły","swój","skała"],
+  questions:[
+    {q:"Obiecywał gruszki na ____.", answers:["wierzbie"]},
+    {q:"W tej klasie zawsze był czarną ____.", answers:["owcą"]},
+    {q:"Ta wiadomość spadła na mnie jak grom z jasnego ____.", answers:["nieba"]},
+    {q:"Z byle drobiazgu robił z igły ____.", answers:["widły"]},
+    {q:"No i trafił swój na ____.", answers:["swego","swojego"]},
+    {q:"Cierpliwość popłaca — kropla drąży ____.", answers:["skałę"]},
+  ]},
+
+{ no:"XVI", title:"Łacina → polski", instr:"Wiele polskich słów pochodzi z łaciny. Dopasuj polskie odpowiedniki do wyrazów łacińskich (pomoże znajomy polski wyraz pochodny).", type:"match",
+  pool:["ruchomy","silny","księżycowy","wodny","środkowy","uwalniać"],
+  ref:{title:"PRZYKŁAD", pairs:[["centrum","środek"]]},
+  questions:[
+    {left:"mobilis  (por. mobilny)", correct:"ruchomy"},
+    {left:"fortis  (por. fortyfikacja)", correct:"silny"},
+    {left:"lunaris  (por. lunarny)", correct:"księżycowy"},
+    {left:"aquaticus  (por. akwarium)", correct:"wodny"},
+    {left:"centralis  (por. centralny)", correct:"środkowy"},
+    {left:"liberare  (por. liberalny)", correct:"uwalniać"},
+  ]},
+];
+
+/* ============================ SILNIK ============================ */
+const VOWELS = "AĄEĘIOÓUYaąeęioóuy";
+function deburr(s){return s.replace(/ą/g,'a').replace(/ć/g,'c').replace(/ę/g,'e').replace(/ł/g,'l').replace(/ń/g,'n').replace(/ó/g,'o').replace(/ś/g,'s').replace(/ż/g,'z').replace(/ź/g,'z');}
+function norm(s){return deburr((s||'').toLowerCase().trim()).replace(/[.!?,;:]+$/,'').replace(/\s+/g,' ');}
+function fillOk(val, answers){const n=norm(val); return answers.some(a=>norm(a)===n);}
+const LETTERS="abcdef";
+
+const state={};   // per-question selections
+
+function build(){
+  const quiz=document.getElementById('quiz');
+  const toc=document.getElementById('toc');
+  let maxPts=0;
+  QUIZ.forEach((s,si)=>{
+    const pts=s.questions.length;
+    maxPts+=pts;
+    const a=document.createElement('a'); a.href='#z'+si; a.textContent=s.no; toc.appendChild(a);
+    const sec=document.createElement('section'); sec.className='task'; sec.id='z'+si;
+    let html=`<div class="task-head"><span class="znum">${s.no}</span><span class="ttl">${s.title}</span><span class="pts">0–${pts} pkt</span></div><p class="instr">${s.instr}</p>`;
+
+    // reference / pool blocks
+    if(s.ref){
+      html+=`<div class="ref"><b>${s.ref.title}</b><div class="grid">`+
+        s.ref.pairs.map(p=>`<div><b>${p[0]}</b> — ${p[1]}</div>`).join('')+`</div></div>`;
+    }
+    if(s.pool && (s.type==='fill')){
+      html+=`<div class="pool">Ramka: ${s.pool.join(' &nbsp;·&nbsp; ')}</div>`;
+    }
+
+    s.questions.forEach((q,qi)=>{
+      const key=si+'_'+qi; state[key]=null;
+      html+=`<div class="q" id="q${key}">`;
+      const n=`<span class="num">${qi+1}.</span>`;
+
+      if(s.type==='mc' || s.type==='odd'){
+        html+=`<div class="stem">${n}${q.q||'Zaznacz wyraz, który nie pasuje:'}</div><div class="opts">`;
+        q.options.forEach((o,oi)=>{
+          html+=`<label class="opt" data-k="${key}" data-i="${oi}"><input type="radio" name="r${key}"><span class="ltr">${LETTERS[oi]})</span><span>${o}</span></label>`;
+        });
+        html+=`</div>`;
+      }
+      else if(s.type==='fill'){
+        const stem=(q.q||q.q===''?q.q:'')+(q.pat?` <span class="hintpat">${q.pat}</span>`:'');
+        html+=`<div class="stem">${n}${stem}</div><input class="fill" data-k="${key}" placeholder="wpisz…">`;
+        html+=`<span class="ans-reveal" id="rev${key}"></span>`;
+      }
+      else if(s.type==='match' || s.type==='categorize'){
+        const opts=(s.type==='categorize'?s.categories:s.pool);
+        html+=`<div class="${s.type==='categorize'?'catrow':'matchrow'}"><span class="left">${n}${q.left}</span>`+
+          `<select class="sel" data-k="${key}"><option value="">— wybierz —</option>`+
+          opts.map(o=>`<option>${o}</option>`).join('')+`</select>`+
+          `<span class="ans-reveal" id="rev${key}"></span></div>`;
+      }
+      else if(s.type==='order'){
+        const nmax=s.questions.length;
+        let o='<option value="">#</option>'; for(let i=1;i<=nmax;i++)o+=`<option value="${i}">${i}</option>`;
+        html+=`<div class="orderrow"><select class="sel" data-k="${key}">${o}</select><span class="txt">${q.txt}</span><span class="ans-reveal" id="rev${key}"></span></div>`;
+      }
+      else if(s.type==='stress'){
+        html+=`<div class="stem">${n}${q.word}</div><div class="lettrow" data-k="${key}">`;
+        [...q.word].forEach((ch,ci)=>{
+          const v=VOWELS.includes(ch);
+          html+=`<span class="letter ${v?'vowel':''}" data-k="${key}" data-i="${ci}" ${v?'':'aria-disabled'}>${ch}</span>`;
+        });
+        html+=`</div><span class="ans-reveal" id="rev${key}"></span>`;
+      }
+      else if(s.type==='wordclick'){
+        // sentence a with fixed underlined part
+        let aHtml=q.a.map(part=>Array.isArray(part)?`<span class="fixed">${part[0]}</span>`:part).join('');
+        html+=`<div class="stem">${n} a) ${aHtml} <span class="tip">— funkcja: ${q.aFn}</span></div>`;
+        html+=`<div class="clk" data-k="${key}">b) `+q.b.map((w,wi)=>{
+          const punct=/^[.,!?]/.test(w);
+          return punct?w:`<span class="w" data-k="${key}" data-i="${wi}">${w}</span> `;
+        }).join('')+`</div><span class="ans-reveal" id="rev${key}"></span>`;
+      }
+      html+=`</div>`;
+    });
+    sec.innerHTML=html;
+    quiz.appendChild(sec);
+  });
+  document.getElementById('maxchip').textContent=maxPts+' pkt';
+  document.getElementById('scoreTxt').textContent='0 / '+maxPts+' pkt';
+
+  // interactivity
+  document.querySelectorAll('label.opt').forEach(el=>el.addEventListener('click',()=>{state[el.dataset.k]=+el.dataset.i;}));
+  document.querySelectorAll('input.fill').forEach(el=>el.addEventListener('input',()=>{state[el.dataset.k]=el.value;}));
+  document.querySelectorAll('select.sel').forEach(el=>el.addEventListener('change',()=>{state[el.dataset.k]=el.value;}));
+  document.querySelectorAll('.lettrow .letter.vowel').forEach(el=>el.addEventListener('click',()=>{
+    const k=el.dataset.k; document.querySelectorAll(`.lettrow .letter[data-k="${k}"]`).forEach(x=>x.classList.remove('sel'));
+    el.classList.add('sel'); state[k]=+el.dataset.i;
+  }));
+  document.querySelectorAll('.clk .w').forEach(el=>el.addEventListener('click',()=>{
+    const k=el.dataset.k; document.querySelectorAll(`.clk .w[data-k="${k}"]`).forEach(x=>x.classList.remove('sel'));
+    el.classList.add('sel'); state[k]=+el.dataset.i;
+  }));
+}
+
+/* ============================ SPRAWDZANIE ============================ */
+function checkAll(){
+  let got=0, max=0;
+  QUIZ.forEach((s,si)=>{
+    s.questions.forEach((q,qi)=>{
+      const key=si+'_'+qi; max++;
+      const qEl=document.getElementById('q'+key);
+      const sel=state[key];
+      let ok=false, correctText='';
+
+      if(s.type==='mc'||s.type==='odd'){
+        ok = sel===q.correct;
+        document.querySelectorAll(`label.opt[data-k="${key}"]`).forEach(l=>{
+          l.classList.remove('is-correct','is-wrong');
+          const i=+l.dataset.i;
+          if(i===q.correct)l.classList.add('is-correct');
+          else if(i===sel)l.classList.add('is-wrong');
+        });
+        if(!ok && q.why) correctText=q.why;
+      }
+      else if(s.type==='fill'){
+        ok = sel!=null && fillOk(sel,q.answers);
+        const rev=document.getElementById('rev'+key);
+        rev.textContent = ok?'✓':('→ '+q.answers[0]); rev.className='ans-reveal'+(ok?'':' bad');
+      }
+      else if(s.type==='match'||s.type==='categorize'||s.type==='order'){
+        const want = s.type==='order'? String(q.pos) : q.correct;
+        ok = String(sel)===String(want);
+        const rev=document.getElementById('rev'+key);
+        rev.textContent = ok?'✓':('→ '+want); rev.className='ans-reveal'+(ok?'':' bad');
+      }
+      else if(s.type==='stress'){
+        ok = sel===q.correct;
+        document.querySelectorAll(`.lettrow .letter[data-k="${key}"]`).forEach(l=>{
+          l.classList.remove('right','wrong','sel'); const i=+l.dataset.i;
+          if(i===q.correct)l.classList.add('right'); else if(i===sel)l.classList.add('wrong');
+        });
+        const rev=document.getElementById('rev'+key); if(!ok && q.why){rev.textContent='→ '+q.why; rev.className='ans-reveal bad';} else rev.textContent='';
+      }
+      else if(s.type==='wordclick'){
+        ok = sel===q.correct;
+        document.querySelectorAll(`.clk .w[data-k="${key}"]`).forEach(w=>{
+          w.classList.remove('right','wrong','sel'); const i=+w.dataset.i;
+          if(i===q.correct)w.classList.add('right'); else if(i===sel)w.classList.add('wrong');
+        });
+      }
+
+      qEl.classList.remove('correct','incorrect');
+      qEl.classList.add(ok?'correct':'incorrect');
+      if(ok)got++;
+    });
+  });
+
+  // score UI
+  const pct=Math.round(got/max*100);
+  document.getElementById('scoreTxt').textContent=got+' / '+max+' pkt';
+  document.getElementById('scoreBar').style.width=pct+'%';
+  const r=document.getElementById('result'); r.className='show';
+  let msg = pct>=90?"Świetnie! Jesteś gotów/gotowa na egzamin. 🏆"
+          : pct>=70?"Dobry wynik! Powtórz tylko zaznaczone na czerwono."
+          : pct>=50?"Nieźle — warto jeszcze poćwiczyć słabsze typy zadań."
+          : "Spokojnie — przejrzyj poprawne odpowiedzi i spróbuj ponownie. 💪";
+  r.innerHTML=`<div class="big">${pct}%</div><div>${got} / ${max} punktów</div><div class="msg">${msg}</div>`;
+  r.scrollIntoView({behavior:'smooth',block:'center'});
+}
+
+function resetAll(){
+  for(const k in state)state[k]=null;
+  document.querySelectorAll('input.fill').forEach(e=>e.value='');
+  document.querySelectorAll('select.sel').forEach(e=>e.value='');
+  document.querySelectorAll('input[type=radio]').forEach(e=>e.checked=false);
+  document.querySelectorAll('label.opt').forEach(e=>e.classList.remove('is-correct','is-wrong'));
+  document.querySelectorAll('.letter').forEach(e=>e.classList.remove('sel','right','wrong'));
+  document.querySelectorAll('.clk .w').forEach(e=>e.classList.remove('sel','right','wrong'));
+  document.querySelectorAll('.q').forEach(e=>e.classList.remove('correct','incorrect'));
+  document.querySelectorAll('.ans-reveal').forEach(e=>{e.textContent='';e.className='ans-reveal';});
+  document.getElementById('scoreBar').style.width='0%';
+  document.getElementById('result').className='';
+  document.querySelector('.scorebar').scrollIntoView({behavior:'smooth'});
+}
+
+build();
+</script>
+</body>
+</html>
